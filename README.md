@@ -7,5 +7,11 @@ Targetted Platform:
 - aOS
 - web
 
+## Functionality
+
+- Scan QR Code
+- Maintain History of the past results
+
 ## Demo
+
 
