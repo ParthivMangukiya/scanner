@@ -14,4 +14,9 @@ Targetted Platform:
 
 ## Demo
 
+### Android
+
+https://user-images.githubusercontent.com/19627767/142752663-10eca9a5-f1e2-4529-bb10-bac30655e497.mp4
+
+
 
