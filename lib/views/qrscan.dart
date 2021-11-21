@@ -1,9 +1,18 @@
 import 'dart:developer';
 import 'dart:io';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:scanner/model/pastresult.dart';
+import 'package:scanner/model/scanresult.dart';
+import 'package:http/http.dart' as http;
+import 'package:scanner/views/history.dart';
+import 'result.dart';
+
+const String pastResultBoxName = 'pastResultBox';
 
 class QRScanPage extends StatefulWidget {
   QRScanPage({Key? key}) : super(key: key);
@@ -60,15 +69,68 @@ class _QRScanPageState extends State<QRScanPage> {
     );
   }
 
+  Future<bool> canShowImage(String? result) async {
+    if (result == null) {
+      return Future<bool>.value(false);
+    }
+    try {
+      final response = await http.get(Uri.parse(result));
+      if (response.statusCode == 200) {
+        return Future<bool>.value(true);
+      } else {
+        return Future<bool>.value(false);
+      }
+    } on Exception catch (e) {
+      return Future<bool>.value(false);
+    }
+  }
+
+  Future<void> showImage(String? result) async {
+    if (result != null) {
+      Box pastResultBox = Hive.box<PastResult>(pastResultBoxName);
+      pastResultBox.put(
+          result, PastResult(result: result, scanTime: DateTime.now()));
+    }
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) =>
+          ResultPage(result: ScanResult(success: true, result: result)),
+    ));
+  }
+
   void _onQRViewCreated(QRViewController controller) {
     setState(() {
       this.controller = controller;
     });
-    controller.scannedDataStream.listen((scanData) {
-      setState(() {
-        result = scanData;
-        print(result);
-      });
+    controller.scannedDataStream.listen((scanData) async {
+      controller.pauseCamera();
+      if (await canShowImage(scanData.code)) {
+        await showImage(scanData.code);
+        controller.resumeCamera();
+      } else {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('QR Code is Incorrect'),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget>[
+                    Text('Data: ${scanData.code}'),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Ok'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        ).then((value) => controller.resumeCamera());
+      }
     });
   }
 

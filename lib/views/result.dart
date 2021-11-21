@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:scanner/helper/scanresult.dart';
+import 'package:scanner/model/scanresult.dart';
 
 class ResultPage extends StatelessWidget {
   const ResultPage({Key? key, this.result}) : super(key: key);
@@ -9,9 +9,13 @@ class ResultPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: _resultView(),
-    );
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text('Result'),
+        ),
+        body: Center(
+          child: _resultView(),
+        ));
   }
 
   Widget _resultView() {
@@ -22,25 +26,13 @@ class ResultPage extends StatelessWidget {
   }
 
   Widget _successView() {
-    if (result == null) {
-      return const Expanded(
-          flex: 1,
-          child: Center(
-            child: Text('Past Scan Results'),
-          ));
+    if (result != null && result?.result != null) {
+      return Image.network(result!.result!);
     }
-    return Expanded(
-        flex: 1,
-        child: Center(
-          child: Image.network('https://picsum.photos/250?image=9'),
-        ));
+    return _failureView();
   }
 
   Widget _failureView() {
-    return Expanded(
-        flex: 1,
-        child: Center(
-          child: Text(result?.failure ?? 'Something went wrong!'),
-        ));
+    return Text(result?.failure ?? 'Something went wrong!');
   }
 }

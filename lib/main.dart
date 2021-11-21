@@ -2,8 +2,17 @@ import 'package:flutter/material.dart';
 
 import 'views/scanner.dart';
 import 'views/history.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'model/pastresult.dart';
 
-void main() {
+const String pastResultBox = 'pastResultBox';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
+  Hive.registerAdapter(PastResultAdapter());
+  await Hive.openBox<PastResult>(pastResultBox);
   runApp(const MyApp());
 }
 
@@ -17,7 +26,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
   String _title = 'Scan QR';
 
-  final tabBarTitle = ['Scan QR', 'Result'];
+  final tabBarTitle = ['Scan QR', 'Past Results'];
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +59,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
             body: const TabBarView(
               children: <Widget>[
                 ScannerPage(),
-                HistoryPage(history: ['A', 'B']),
+                HistoryPage(),
               ],
             ),
           );
