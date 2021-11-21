@@ -9,7 +9,6 @@ import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:scanner/model/pastresult.dart';
 import 'package:scanner/model/scanresult.dart';
 import 'package:http/http.dart' as http;
-import 'package:scanner/views/history.dart';
 import 'result.dart';
 
 const String pastResultBoxName = 'pastResultBox';
@@ -49,13 +48,10 @@ class _QRScanPageState extends State<QRScanPage> {
   }
 
   Widget _buildQrView(BuildContext context) {
-    // For this example we check how width or tall the device is and change the scanArea and overlay accordingly.
     var scanArea = (MediaQuery.of(context).size.width < 400 ||
             MediaQuery.of(context).size.height < 400)
         ? 150.0
         : 300.0;
-    // To ensure the Scanner view is properly sizes after rotation
-    // we need to listen for Flutter SizeChanged notification and update controller
     return QRView(
       key: qrKey,
       onQRViewCreated: _onQRViewCreated,
@@ -104,7 +100,9 @@ class _QRScanPageState extends State<QRScanPage> {
     controller.scannedDataStream.listen((scanData) async {
       controller.pauseCamera();
       if (await canShowImage(scanData.code)) {
-        await showImage(scanData.code);
+        if (ModalRoute.of(context)?.isCurrent ?? false) {
+          await showImage(scanData.code);
+        }
         controller.resumeCamera();
       } else {
         showDialog(
@@ -138,7 +136,7 @@ class _QRScanPageState extends State<QRScanPage> {
     log('${DateTime.now().toIso8601String()}_onPermissionSet $p');
     if (!p) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('no Permission')),
+        const SnackBar(content: Text('No Permission!')),
       );
     }
   }

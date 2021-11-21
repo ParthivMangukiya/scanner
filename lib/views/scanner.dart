@@ -11,16 +11,17 @@ class ScannerPage extends StatefulWidget {
   State<ScannerPage> createState() => _ScannerPageState();
 }
 
-class _ScannerPageState extends State<ScannerPage> {
+class _ScannerPageState extends State<ScannerPage>
+    with AutomaticKeepAliveClientMixin<ScannerPage> {
+  @override
+  bool get wantKeepAlive => true;
+
   bool showQRPage = false;
 
   void moveToScan() {
     setState(() {
       showQRPage = true;
     });
-    // Navigator.of(context).push(MaterialPageRoute(
-    //   builder: (context) => QRScanPage(),
-    // ));
   }
 
   @override
@@ -29,7 +30,7 @@ class _ScannerPageState extends State<ScannerPage> {
   }
 
   Widget _body() {
-    if (showQRPage) {
+    if (!showQRPage) {
       return _welcome();
     } else {
       return QRScanPage();
@@ -42,11 +43,21 @@ class _ScannerPageState extends State<ScannerPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           const Padding(
-            padding: EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(16.0),
             child: Text('Scan QR Code to view image',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30)),
           ),
-          ElevatedButton(onPressed: moveToScan, child: const Text('Continue')),
+          Container(
+            width: 200,
+            margin: const EdgeInsets.all(32.0),
+            child: const Image(image: AssetImage('assets/scan_qr.png')),
+          ),
+          ElevatedButton.icon(
+            icon: const Icon(Icons.navigate_next),
+            onPressed: moveToScan,
+            label: const Text('Continue'),
+            style: ElevatedButton.styleFrom(minimumSize: const Size.square(40)),
+          )
         ],
       ),
     );

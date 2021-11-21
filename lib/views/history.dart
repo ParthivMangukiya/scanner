@@ -17,7 +17,11 @@ class HistoryPage extends StatefulWidget {
   State<HistoryPage> createState() => _HistoryPageState();
 }
 
-class _HistoryPageState extends State<HistoryPage> {
+class _HistoryPageState extends State<HistoryPage>
+    with AutomaticKeepAliveClientMixin<HistoryPage> {
+  @override
+  bool get wantKeepAlive => true;
+
   Box<PastResult> pastResultBox = Hive.box<PastResult>(pastResultBoxName);
 
   @override
