@@ -25,6 +25,7 @@ class _QRScanPageState extends State<QRScanPage> {
   QRViewController? controller;
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
 
+  //For Debug Purpose Only! Recommended By qr_code_scanner.
   @override
   void reassemble() {
     super.reassemble();
@@ -39,11 +40,7 @@ class _QRScanPageState extends State<QRScanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: <Widget>[
-          Expanded(flex: 4, child: _buildQrView(context)),
-        ],
-      ),
+      body: _buildQrView(context)
     );
   }
 
@@ -65,6 +62,58 @@ class _QRScanPageState extends State<QRScanPage> {
     );
   }
 
+  void _onQRViewCreated(QRViewController controller) {
+    setState(() {
+      this.controller = controller;
+    });
+    controller.scannedDataStream.listen((scanData) async {
+      handleScanData(scanData);
+    });
+  }
+
+  //Handle ScanData Event
+  void handleScanData(Barcode scanData) async {
+      if(!kIsWeb) {
+        controller?.pauseCamera();
+      }
+      if (await canShowImage(scanData.code)) {
+        if (ModalRoute
+            .of(context)
+            ?.isCurrent ?? false) {
+          await showImage(scanData.code);
+        }
+        if(!kIsWeb) {
+          controller?.resumeCamera();
+        }
+      } else {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('QR Code is Incorrect'),
+              content: SingleChildScrollView(
+                  child: Text('Data: ${scanData.code}')
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Ok'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        ).then((value) =>
+        {
+          if(!kIsWeb) {
+              controller?.resumeCamera()
+          }
+        });
+      }
+  }
+
+  //Check Correctness of QR Code, else show alert box
   Future<bool> canShowImage(String? result) async {
     if (result == null) {
       return Future<bool>.value(false);
@@ -81,6 +130,7 @@ class _QRScanPageState extends State<QRScanPage> {
     }
   }
 
+  //Navigate to show Image
   Future<void> showImage(String? result) async {
     if (result != null) {
       Box pastResultBox = Hive.box<PastResult>(pastResultBoxName);
@@ -93,47 +143,7 @@ class _QRScanPageState extends State<QRScanPage> {
     ));
   }
 
-  void _onQRViewCreated(QRViewController controller) {
-    setState(() {
-      this.controller = controller;
-    });
-    controller.scannedDataStream.listen((scanData) async {
-      controller.pauseCamera();
-      if (await canShowImage(scanData.code)) {
-        if (ModalRoute.of(context)?.isCurrent ?? false) {
-          await showImage(scanData.code);
-        }
-        controller.resumeCamera();
-      } else {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text('QR Code is Incorrect'),
-              content: SingleChildScrollView(
-                child: ListBody(
-                  children: <Widget>[
-                    Text('Data: ${scanData.code}'),
-                  ],
-                ),
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: const Text('Ok'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-            );
-          },
-        ).then((value) => controller.resumeCamera());
-      }
-    });
-  }
-
   void _onPermissionSet(BuildContext context, QRViewController ctrl, bool p) {
-    log('${DateTime.now().toIso8601String()}_onPermissionSet $p');
     if (!p) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No Permission!')),

@@ -61,6 +61,7 @@ class _HistoryPageState extends State<HistoryPage>
     );
   }
 
+  //Navigate to result view
   void showResult(PastResult data) async {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (context) =>

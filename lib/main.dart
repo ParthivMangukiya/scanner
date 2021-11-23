@@ -10,10 +10,15 @@ const String pastResultBox = 'pastResultBox';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  initializeHive();
+  runApp(const MyApp());
+}
+
+//Initializes Hive Database
+void initializeHive() async {
   await Hive.initFlutter();
   Hive.registerAdapter(PastResultAdapter());
   await Hive.openBox<PastResult>(pastResultBox);
-  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
